@@ -1,16 +1,16 @@
 "use strict";
-const btn = document.getElementById("toggleBtn");
-function updateButton(enabled) {
-    btn.textContent = enabled ? "Furigana: ON" : "Furigana : OFF";
+const toggle = document.getElementById("toggleBtn");
+const statusEl = document.getElementById("statusText");
+function updateUI(enabled) {
+    toggle.checked = enabled;
+    statusEl.textContent = enabled ? "Furigana: ON" : "Furigana : OFF";
 }
 chrome.storage.sync.get(["furiganaEnabled"], (result) => {
     const enabled = result.furiganaEnabled != false;
-    updateButton(enabled);
+    updateUI(enabled);
 });
-btn.addEventListener("click", () => {
-    chrome.storage.sync.get(["furiganaEnabled"], (result) => {
-        const newState = !(result.furiganaEnabled !== false);
-        chrome.storage.sync.set({ furiganaEnabled: newState });
-        updateButton(newState);
-    });
+toggle.addEventListener("change", () => {
+    const newState = toggle.checked;
+    chrome.storage.sync.set({ furiganaEnabled: newState });
+    updateUI(newState);
 });

@@ -1,18 +1,18 @@
-const btn = document.getElementById("toggleBtn") as HTMLButtonElement;
+const toggle = document.getElementById("toggleBtn") as HTMLInputElement;
+const statusEl = document.getElementById("statusText") as HTMLDivElement;
 
-function updateButton(enabled: boolean) {
-    btn.textContent = enabled ? "Furigana: ON" : "Furigana : OFF";
+function updateUI(enabled: boolean) {
+    toggle.checked = enabled;
+    statusEl.textContent = enabled ? "Furigana: ON" : "Furigana : OFF";
 }
 
 chrome.storage.sync.get(["furiganaEnabled"], (result) => {
     const enabled = result.furiganaEnabled != false;
-    updateButton(enabled);
+    updateUI(enabled);
 });
 
-btn.addEventListener("click", () => {
-    chrome.storage.sync.get(["furiganaEnabled"], (result) => {
-        const newState = !(result.furiganaEnabled !== false);
-        chrome.storage.sync.set({ furiganaEnabled: newState});
-        updateButton(newState);
-    });
-});
+toggle.addEventListener("change", () => {
+    const newState = toggle.checked;
+    chrome.storage.sync.set({ furiganaEnabled : newState});
+    updateUI(newState);
+});    
