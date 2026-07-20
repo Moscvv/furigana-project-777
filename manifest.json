@@ -10,7 +10,8 @@
     "content_scripts": [
    {
      "matches": ["<all_urls>"],
-     "js": ["kuromoji.js", "dist/content.js"]
+     "js": ["kuromoji.js", "dist/content.js"],
+     "css": ["src/styles.css"]
    }
  ],
  "web_accessible_resources": [

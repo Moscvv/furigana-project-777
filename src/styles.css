@@ -1,0 +1,10 @@
+.furgiana-span ruby {
+    ruby-position: over;
+}
+
+.furigana-span rt {
+    font-size: 0.6em;
+    color: inherit;
+    opacity: 0.75;
+    user-select: none;
+}
