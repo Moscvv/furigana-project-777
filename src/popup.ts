@@ -1,6 +1,6 @@
-const btn = document.getElementById("toggleBtn");
+const btn = document.getElementById("toggleBtn") as HTMLButtonElement;
 
-function updateButton(enabled) {
+function updateButton(enabled: boolean) {
     btn.textContent = enabled ? "Furigana: ON" : "Furigana : OFF";
 }
 
