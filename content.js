@@ -1,5 +1,13 @@
 
-kuromoji.builder({ dicPath: chrome.runtime.getURL("dict/") }).build((err, tokenizer) => {
+chrome.storage.sync.get(["furiganaEnabled"], (result) => {
+    const enabled = result.furiganaEnabled !== false;
+    if(enabled) {
+        initFurigana();
+    }
+});
+
+function initFurigana() {
+    kuromoji.builder({ dicPath: chrome.runtime.getURL("dict/") }).build((err, tokenizer) => {
     if (err) {
         console.error("Failed to load kuromoji:", err);
         return;
@@ -9,7 +17,9 @@ kuromoji.builder({ dicPath: chrome.runtime.getURL("dict/") }).build((err, tokeni
     window.furiganaTokenizer = tokenizer;
     applyFurigana();
     watchForNewContent();
-});
+    });
+}
+
 
 function getReadings(text) {
     if (!window.furiganaTokenizer) return [];
@@ -76,6 +86,8 @@ function applyFurigana() {
     nodes.forEach(node => {
         const html = addFurigana(node.textContent);
         const span = document.createElement("span");
+        span.className = "furigana-span";
+        span.dataset.original = node.textContent;
         span.innerHTML = html;
         node.replaceWith(span);
     });
@@ -93,4 +105,26 @@ function watchForNewContent() {
     contentObserver.observe(document.body, { childList: true, subtree: true });
 }
 
+function removeFurigana() {
+    document.querySelectorAll(".furigana-span").forEach(span => {
+        const textNode = document.createTextNode(span.dataset.original);
+        span.replaceWith(textNode);
+    });
+}
 
+chrome.storage.onChanged.addListener((changes) => {
+    if (!changes.furiganaEnabled) return;
+
+    const enabled = changes.furiganaEnabled.newValue;
+    if (enabled) {
+        if (window.furiganaTokenizer) {
+            applyFurigana();
+            watchForNewContent();
+        } else {
+            initFurigana();
+        }
+    } else {
+        removeFurigana();
+        if (contentObserver) contentObserver.disconnect();
+    }
+});
