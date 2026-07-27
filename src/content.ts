@@ -6,6 +6,12 @@ chrome.storage.sync.get(["furiganaEnabled"], (result) => {
     }
 });
 
+
+chrome.storage.sync.get(["furiganaColor" , "furiganaFont", "furiganaSize"], (result) => {
+    applyStyles(result.furiganaColor as string, result.furiganaFont as string, result.furiganaSize as string);
+});
+
+
 function initFurigana() {
     kuromoji.builder({ dicPath: chrome.runtime.getURL("dict/") }).build((err: any, tokenizer: any) => {
     if (err) {
@@ -41,8 +47,38 @@ function tokenToHTML(token: any) {
     if (!hasKanji) return token.surface_form;
 
     const hiraganaReading = katakanaToHiragana(token.reading || token.surface_form);
-    return `<ruby>${token.surface_form}<rt>${hiraganaReading}</rt></ruby>`;
+    const { prefix, kanji, kanjiReading, suffix } = split0kurigana(token.surface_form, hiraganaReading);
+
+    if(!kanji) return token.surface_form;
+    return `${prefix}<ruby>${kanji}<rt>${kanjiReading}</rt></ruby>${suffix}`;
 }
+
+function split0kurigana(surface: string, hiraganaReading: string){
+    let start = 0
+    while (
+        start < surface.length &&
+        surface[start] === hiraganaReading[start] &&
+        !/[\u4E00-\u9FAF]/.test(surface[start])
+    ) {
+        start++;    
+    }
+    let end = 0;
+     while (
+        end < (surface.length - start) &&
+        surface[surface.length -1 - end] === hiraganaReading[hiraganaReading.length - 1 - end] &&
+        !/[\u4E00-\u9FAF]/.test(surface[surface.length - 1 - end])
+    ) {
+        end++;
+    }
+
+    return {
+        prefix: surface.slice(0, start),
+        kanji: surface.slice(start, surface.length - end),
+        kanjiReading: hiraganaReading.slice(start, hiraganaReading.length - end),
+        suffix: surface.slice(surface.length - end)
+    }; 
+}
+
 
 function addFurigana(text: string) {
     const tokens = window.furiganaTokenizer.tokenize(text);
@@ -113,6 +149,16 @@ function removeFurigana() {
     });
 }
 
+
+function applyStyles(color?: string, font?: string, size?: string) {
+    document.documentElement.style.setProperty("--furigana-color", color || "#555555");
+    document.documentElement.style.setProperty("--furigana-font", font || "sans-serif");
+    document.documentElement.style.setProperty("--furigana-size", (size || 14) + "px");
+}
+
+
+
+
 chrome.storage.onChanged.addListener((changes) => {
     if (!changes.furiganaEnabled) return;
 
@@ -128,4 +174,13 @@ chrome.storage.onChanged.addListener((changes) => {
         removeFurigana();
         if (contentObserver) contentObserver.disconnect();
     }
+
+});
+
+chrome.storage.onChanged.addListener((changes) => {
+    if (!changes.furiganaColor && !changes.furiganaFont && !changes.furiganaSize) return;
+
+    chrome.storage.sync.get(["furiganaColor", "furiganaFont", "furiganaSize"], (result) => {
+            applyStyles(result.furiganaColor as string, result.furiganaFont as string, result.furiganaSize as string);
+        });
 });
