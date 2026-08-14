@@ -1,4 +1,3 @@
-
 chrome.storage.sync.get(["furiganaEnabled"], (result) => {
     const enabled = result.furiganaEnabled !== false;
     if(enabled) {
@@ -11,6 +10,39 @@ chrome.storage.sync.get(["furiganaColor" , "furiganaFont", "furiganaSize"], (res
     applyStyles(result.furiganaColor as string, result.furiganaFont as string, result.furiganaSize as string);
 });
 
+let tooltipEl: HTMLElement | null = null;
+let dictionaryData: Record<string, DictEntry[]> | null = null;
+
+window.getDictionary().then(data => {
+    dictionaryData = data;
+    console.log("Dictionary loaded:", Object.keys(data).length, "words");
+});
+
+
+function getTooltipEl(): HTMLElement {
+    if (tooltipEl) return tooltipEl;
+    tooltipEl = document.createElement("div");
+    tooltipEl.className = "furigana-tooltip";
+    tooltipEl.style.display = "none";
+    document.body.appendChild(tooltipEl)
+    return tooltipEl;
+}
+
+function showTooltip(word: string, entries: DictEntry[], x: number, y: number) {
+    const el = getTooltipEl();
+    const top = entries[0];
+    el.innerHTML = `
+        <div class="tooltip-reading">${top.r}</div>
+        <div>${top.m.join("; ")}</div>
+    `;
+    el.style.left = `${x + 12}px`;
+    el.style.top = `${y + 12}px`;
+    el.style.display = "block";
+}
+
+function hideTooltip() {
+    if (tooltipEl) tooltipEl.style.display = "none";
+}
 
 function initFurigana() {
     kuromoji.builder({ dicPath: chrome.runtime.getURL("dict/") }).build((err: any, tokenizer: any) => {
@@ -48,9 +80,15 @@ function tokenToHTML(token: any) {
 
     const hiraganaReading = katakanaToHiragana(token.reading || token.surface_form);
     const { prefix, kanji, kanjiReading, suffix } = split0kurigana(token.surface_form, hiraganaReading);
-
     if(!kanji) return token.surface_form;
-    return `${prefix}<ruby>${kanji}<rt>${kanjiReading}</rt></ruby>${suffix}`;
+
+    const hasDictForm = token.basic_form && token.basic_form !== "*";
+    const dictForm = hasDictForm ? token.basic_form : token.surface_form;
+
+    const ruby = `<ruby>${kanji}<rt>${kanjiReading}</rt></ruby>`;
+    const word = `${prefix}${ruby}${suffix}`;
+
+    return `<span class="furigana-word" data-word="${dictForm}">${word}</span>`;
 }
 
 function split0kurigana(surface: string, hiraganaReading: string){

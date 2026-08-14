@@ -2,18 +2,43 @@
     "manifest_version": 3,
     "name": "furigana_extension",
     "version": "0.1.0",
-    "permissions": ["storage"],
+    "icons": {
+        "16": "icons/teal_icon16.png",
+        "48": "icons/teal_icon48.png",
+        "128": "icons/teal_icon128.png"
+    },
+    "permissions": ["storage", "unlimitedStorage"],
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/teal_icon16.png",
+            "48": "icons/teal_icon48.png",
+            "128": "icons/teal_icon128.png"
+        }
     },
     
+    "commands": {
+        "toggle-furigana": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+F",
+                "mac": "Command+Shift+F"
+            },
+            "description": "Toggle furigana on/off"
+        }
+    },
+
+    "background": {
+        "service_worker": "dist/background.js"
+    },
+
     "content_scripts": [
    {
      "matches": ["<all_urls>"],
-     "js": ["kuromoji.js", "dist/content.js"],
+     "js": ["kuromoji.js", "dist/dictionary.js", "dist/content.js"],
      "css": ["src/styles.css"]
    }
  ],
+
  "web_accessible_resources": [
     {
         "resources": ["dict/*"],

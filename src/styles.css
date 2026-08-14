@@ -1,10 +1,37 @@
-.furgiana-span ruby {
+.furigana-span ruby {
     ruby-position: over;
 }
 
 .furigana-span rt {
-    font-size: 0.6em;
-    color: inherit;
+    font-size: var(--furigana-size, 14px);
+    font-family: var(--furigana-font, inherit);
+    color: var(--furigana-color, inherit);
     opacity: 0.75;
     user-select: none;
+}
+
+
+
+.furigana-word {
+    cursor: help;
+}
+
+.furigana-tooltip {
+    position: fixed;
+    z-index: 2147483647;
+    background: #1a1a1a;
+    color: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 280px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+.furigana-tooltip .tooltip-reading {
+    color: #9ecbff;
+    font-size: 12px;
+    margin-bottom: 2px;
 }
